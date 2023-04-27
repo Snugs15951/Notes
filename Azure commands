@@ -1,0 +1,95 @@
+Install-module AzureAD -AllowClobber - download a module in order to import
+Import-module AzureAD  -force - include outside scripts/modules in this session
+
+Remove-Item -Path Alias:\cfy - fixes error New-Alias: The alias is not allowed, because an alias with the name 'cfy' already exists when importing a PS module.
+
+PS-AZ
+
+Connect-AzAccount (for PS AZ)
+Connect-AzAccount -TenantId a5f8a07d-2478-4995-bc90-0e53ac391e5d - connect to BOA tenant
+Connect-AzAccount -TenantId bf5d262e-aba3-4970-a1fe-3743a230423b - connect to MOS tenant
+Connect-AzureAD
+Login-AzAccount
+Get-AzContext
+Set-AzContext "AZBOA" - set context to BOA for this session
+Select-AzContext "AZBOA" - set context across PS sessions
+Get-AzSubscription - list all subs available to my Azure account
+Select-AzSubscription -SubscriptionName "DFX Dev/Test" or
+			       -SubscriptionID e22ea146-3784-4fa3-8304-767b42b0c7b0 (DevOps)
+Import-AzAksCredential -ResourceGroupName mos-prod-pr-k8s-rg -Name mos-prod-pr-k8s -Force
+
+New-AzRsourceGroupDeployment -templateFile "path to template.bicep" -templateParamterFile "Path to template parameter file.jsonaz" -ResourceGroupName "RG name"
+
+Get-AzureADApplication - get app registrations for this tenant (need to set proper subscription for non-MT tenants)
+
+Azure CLI
+
+Reference: https://learn.microsoft.com/en-US/cli/azure/reference-index?view=azure-cli-latest#az_version
+
+az login
+az login --service-principal -u 404bcb49-8d7b-4294-8ea5-c9b581d1539f -p <secret value> --tenant 997a9587-5616-4bcf-90d8-92eb998122f6
+az aks get-credentials --name mos-prod-pr-k8s --resource-group mos-prod-pr-k8s-rg --overwrite-existing
+az account show --output table # get the current default subscription using show
+az account set -s "Devops"
+-subscription "
+az account list - lists all subscriptions under the current user profile
+az account list --output table # get the current default subscription using list
+az account list --query"[?isDefault]" # get a list of subscriptions except for the default subscription
+az account list --query"[?isDefault == \`false\`]" # get the details of a specific subscription
+az account show --subscription MySubscriptionName
+
+az aks get-versions --location northcentralus --output table
+az aks command invoke --resource-group ren-nonprod-mt-k8s-rg --name ren-nonprod-mt-k8s --command "kubectl get pods -n default" - for checking resources on private K8s cluster without Kubectl
+az aks show -g ren-nonprod-mt-k8s-rg -n ren-nonprod-mt-k8s --query "identity" - show control plane managed identity
+az aks show -g <RGName> -n <ClusterName> --query "servicePrincipalProfile" - Get control plane identity of current cluster
+
+az acr list - show ACRs attached to the current cluster
+az acr identity show - show the container registry's identity details
+az acr identity assign
+az acr identity remove
+
+For new cluster access to new ACR:
+az acr show -g boa-int-pr-k8s-rg-n boaintprk8simagerepo.azurecr.io --query "id" -o tsv
+az aks show -g boa-int-pr-k8s-rg -n boa-int-pr-k8s --query 'identityProfile.kubeletidentity.clientId' -o tsv
+az role assignment create --assignee (az aks show -g boa-int-pr-k8s-rg -n boa-int-pr-k8s --query 'identityProfile.kubeletidentity.clientId' -o tsv) --role AcrPull --scope (az acr show -g boa-int-pr-k8s-rg -n boaintprk8simagerepo.azurecr.io --query "id" -o tsv)Get
+az aks check-acr --name boa-int-pr-k8s --resource-group boa-int-pr-k8s-rg --acr boaintprk8simagerepo.azurecr.io
+
+Connect to Azure as Service Principal account:
+
+$azureAplicationId = "8134e7d8-b18b-4374-87a7-2ab959477d48"
+$azureTenantId = "997a9587-5616-4bcf-90d8-92eb998122f6"
+$azurePassword = ConvertTo-SecureString "<secret value>" -AsPlainText -Force
+$psCred = New-Object System.Management.Automation.PSCredential($azureAplicationId , $azurePassword)
+Connect-AzAccount -Credential $psCred -TenantId $azureTenantId  -ServicePrincipal -UseDeviceAuthentication
+
+Alternate:
+
+$sourceCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList '142e8c22-a2d6-48dd-822f-ef645f67c6e6', (ConvertTo-SecureString -String "<String value>" -AsPlainText -Force)
+Connect-AzAccount -ServicePrincipal -TenantId a5f8a07d-2478-4995-bc90-0e53ac391e5d -Credential $sourceCred
+
+Connect to ACR to pull/tag/push images:
+
+Connect-AzContainerRegistry -Name <source_image_repo_name>
+
+$acrCreds = Get-AzContainerRegistryCredential -Name rennonprodmtk8simagerepo -ResourceGroupName "ren-nonprod-mt-k8s-rg"
+
+$acrCreds.Password | docker login "rennonprodmtk8simagerepo.azurecr.io" -u $acrCreds.Username --password-stdin | Out-Null;
+
+# Pull docker image from source ACR
+docker pull rennonprodmtk8simagerepo.azurecr.io/addressservice:1.0.0.125
+
+# Re-tag the image for the destination ACR
+docker tag rennonprodmtk8simagerepo.azurecr.io/addressservice:1.0.0.125 renintprk8simagerepo.azurecr.io/addressservice:1.0.0.125 
+
+Connect-AzContainerRegistry -Name <destination_image_repo_name>
+
+$acrCreds = Get-AzContainerRegistryCredential -Name <destination_image_repo_name> -ResourceGroupName "ren-int-pr-k8s-rg"
+
+#Push image to destination ACR
+docker push renintprk8simagerepo.azurecr.io/addressservice:1.0.0.125 
+
+
+
+
+
+
