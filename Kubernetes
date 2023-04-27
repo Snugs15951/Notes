@@ -1,0 +1,109 @@
+Kubernetes commands
+
+Contexts:
+
+kubectl config get-contexts
+kubectl config use-context <namespace>
+kubectl config set-context mt-int --cluster ren-nonprod-mt-k8s --user clusterUser_ren-nonprod-mt-k8s-rg_ren-nonprod-mt-k8s --namespace=mt-int
+kubectl config set-context --current --namespace=<namespace> - sets default namespace for all commands
+kubectl config unset contexts.<context name> - removes a context
+kubectl config delete-context <context name> - deletes a context
+
+Pods:
+
+kubectl get pods
+kubectl describe pod <podname> -n <namespace>
+kubectl get pod -o wide --all-namespaces - list full details of pods/namespaces/services
+kubectl describe pod notificationservicedb-x4nqr
+kubectl top pod --namespace=<namespace> - check memory usage of all pods in a namespace
+kubectl get pods -n airbyte --show-labels
+kubectl delete pod
+kubectl get poddisruptionbudgets
+kubectl get pods labelservice-855d8df6cf-6vbfg -o jsonpath='{.spec.containers[*].name}' - list all containers in a pod
+kubectl get pod hello-kiamol --output custom-columns=NAME:metadata.name,NODE_IP:status.hostIP,POD_IP:status.podIP - specify custom columns in the output
+
+kubectl exec --stdin --tty programservice-868bf6b449-2q8sp -- /bin/bash - shell access to the single container in a pod
+kubectl exec -it pod-name -c <containername> -- sh - start a shell inside the container (*deprecated)
+	/bin/bash to start bash from shell
+	printenv - show environment variables in the container
+kubectl exec -n <namespace> -it <podname> /bin/bash - bash command prompt inside the pod
+	Use ns-lookup to test DNS of a pod
+	Cat /etc/resolv.conf - view contents of DNS configuration in pod
+	Cat access.log / error.log - logs to check for troubleshooting
+kubectl debug node/aks-agentpool02-30556173-vmss000000 -it --image=mcr.microsoft.com/dotnet/runtime-deps:6.0 - runs debugger to explore node VM file system
+kubectl wait --for=condition=Ready pod hello-kiamol - report the current condition of the pod
+kubectl run hello-kiamol --image=kiamol/ch02-hello-kiamol --restart=Never - run a pod with the given image (obtained using a docker pull command)
+
+Logs:
+
+kubectl logs <podname>
+kubectl logs -f <servicename>
+kubectl logs deploy/servicename
+kubectl logs -n my-namespace my-pod-name-xyz > my-pod-name.log - exports pod log to file
+kubectl get events
+
+Services:
+
+kubectl get services -A (shows services in all namespaces with their associated cluster IP address)
+kubectl describe service <servicename>
+kubectl get services -n <namespace> --show-labels
+kubectl get svc airbyte-webapp-svc -o yaml - output service config to yaml file
+kubectl edit svc airbyte-webapp-svc
+kubectl get serviceaccounts
+kubectl delete all -l run=my-nginx - remove a running container and service
+
+Deployments:
+
+kubectl get deployments -n <namespace>
+kubectl get deploy <deploymentname> -o yaml
+kubectl describe deployment <deploymentname>
+kubectl scale deployment charitysearchservice --replicas=0 && kubectl scale deployment charitysearchservice --replicas=3 - reboot service on pod
+kubectl delete deployment <deploymentname> -n <namespace>
+kubectl expose deployment my-nginx --port=80 --type=LoadBalancer
+
+Secrets:
+
+kubectl get secrets
+kubectl edit secret <secretname>
+kubectl get secret <secretname> -n mt-int -o yaml - Outputs to yaml file
+kubectl describe secret <servicename>
+For microservice secret:
+kubectl create -n <namespace> -f secret.yaml - create a secret
+For database secret:
+kubectl create secret generic schedulerdb --from-file=".\connectionString" - create DB connection string secret from text file
+	or
+kubectl create secret generic schedulerdb --from-literal=connectionString="STUFF;" - create DB connection string from given connection string
+kubectl annotate secret <secret-name> kubectl.kubernetes.io/last-applied-configuration- -n <namespace> - update a secret
+kubectl replace -f nginx.yaml
+kubectl delete -f nginx.yaml -f redis.yaml
+
+Roles:
+
+kubectl get roles
+kubectl get rolebindings
+kubectl edit rolebinding <bindingname>
+
+Resources:
+
+kubectl -n mt-reg apply -f .\myCRD.yaml - apply a configuration file within a specific namespace
+kubectl get all - lists pods, services, deployments and replica sets
+kubectl get nodes
+kubectl get endpoints
+kubectl get ns
+kubectl version --client
+kubectl get configmap -n <namespace>
+kubectl explain <resource>
+kubectl get peerauthentication
+kubectl get destinationrules
+
+Miscellaneous:
+
+kubectl get <resource> <resourcename> -n <namespace> -o yaml
+kubectl run curl --image=radial/busyboxplus:curl -i --tty --rm - loads up busybox for testing
+	curl airbyte-webapp-svc:31025 -v - probes a service or IP for connectivity
+ 
+Initialize-RenKubeContext -parameter
+
+Test-NetConnection <domain> -p 80kubectl
+
+az aks list - pull cluster info including associated SP ID
