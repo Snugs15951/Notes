@@ -1,0 +1,54 @@
+#Update AKS clusters to specified version
+
+#$istioVersion = ''
+$aksVersion = '1.25'
+
+#MT-nonprod 
+
+kubectl config use-context mt-int
+
+#Initiate AKS upgrade
+#az aks upgrade --resource-group ren-nonprod-mt-k8s-rg --name ren-nonprod-mt-k8s --kubernetes-version $aksVersion --yes
+
+#Check AKS status 
+#az aks show --resource-group ren-nonprod-mt-k8s-rg --name ren-nonprod-mt-k8s --output table
+
+#Install Istio
+# cd "C:\Users\womackn\Downloads\Istio installation files\istioctl-1.13.3-win"
+# .\istioctl.exe precheck
+# .\istioctl.exe upgrade
+        #Restart deployments of pods using Istio sidecar
+        # kubectl rollout restart deployment usaddressparserservice
+        # kubectl rollout restart deployment encryptionservice
+
+# cd "C:\Users\womackn\Downloads\Istio installation files\istioctl-1.14.6-win\"
+# .\istioctl.exe precheck
+# .\istioctl.exe upgrade
+        #Restart deployments of pods using Istio sidecar
+        # kubectl rollout restart deployment usaddressparserservice
+        # kubectl rollout restart deployment encryptionservice
+
+# cd "C:\Users\womackn\Downloads\Istio installation files\istioctl-1.15.7-win"
+# .\istioctl.exe precheck
+# .\istioctl.exe upgrade
+        #Restart deployments of pods using Istio sidecar
+        # kubectl rollout restart deployment usaddressparserservice
+        # kubectl rollout restart deployment encryptionservice
+
+# cd "C:\Users\womackn\Downloads\Istio installation files\istioctl-1.16.5-win"
+# .\istioctl.exe precheck
+# .\istioctl.exe upgrade
+        #Restart deployments of pods using Istio sidecar
+        # kubectl rollout restart deployment usaddressparserservice
+        # kubectl rollout restart deployment encryptionservice
+
+# cd "C:\Users\womackn\Downloads\Istio installation files\istioctl-1.17.3-win"
+# .\istioctl.exe precheck
+# .\istioctl.exe upgrade
+        #Restart deployments of pods using Istio sidecar
+        # kubectl rollout restart deployment usaddressparserservice
+        # kubectl rollout restart deployment encryptionservice
+
+
+
+
